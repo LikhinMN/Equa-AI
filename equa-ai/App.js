@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View, Dimensions } from "react-native";
 import { useState } from "react";
 import Canvas from "./components/Canvas.js";
+import Result from "./components/Result.js";
 const { height, width } = Dimensions.get("window");
 export default function App() {
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
+  const [result, setResult] = useState([]);
   const onTouchEnd = () => {
     if (currentPath.length > 0) {
       setPaths([...paths, currentPath]);
@@ -23,6 +25,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <Result height={height} width={width} result={result} />
       <Canvas
         paths={paths}
         currentPath={currentPath}
