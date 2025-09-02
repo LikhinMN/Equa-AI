@@ -1,6 +1,8 @@
 import { View } from "react-native";
 import { MathJaxSvg } from "react-native-mathjax-html-to-svg";
+
 const Result = ({ result, height }) => {
+  const equations = Array.isArray(result) ? result : [result];
   return (
     <View
       style={{
@@ -9,8 +11,8 @@ const Result = ({ result, height }) => {
         backgroundColor: "#c7c7c7ff",
       }}
     >
-      {result.map((equation) => (
-        <MathJaxSvg key={equation}>{equation}</MathJaxSvg>
+      {equations.map((equation, index) => (
+        <MathJaxSvg key={index}>{String(equation)}</MathJaxSvg>
       ))}
     </View>
   );

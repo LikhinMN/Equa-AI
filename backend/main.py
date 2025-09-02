@@ -1,42 +1,60 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
 from schema import Equation
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
+
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel("gemini-1.5-flash")
+
 app = FastAPI()
 
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key) 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-model = genai.GenerativeModel("gemini-1.5-flash")
 
 @app.get("/")
 def home():
-    return {"message": "Server running successfully "}
+    return {"message": "Server running successfully"}
 
 @app.post("/solve")
-async def solve_equation(req:Equation):
+async def solve_equation_image(
+    file: UploadFile = File(...),
+    previous: str = Form("[]")
+):
     try:
+        image_bytes = await file.read()
+
         prompt = f"""
-        You are a math recognition system. 
-        - Input: An SVG string representing a handwritten/drawn math expression. 
-        - Context: Previous recognized LaTeX results are {req.previous}.
-        - Task: Interpret the SVG as a mathematical expression and output ONLY the LaTeX.
-        - Format: Return the result strictly inside \\[ and \\], nothing else.
+        You are a math recognition and solving system.
 
-        Example:
-        SVG → "circle and x above it"
-        Output → \\[ x^2 \\]
-
-        SVG Content:
-        {req.svg}
+        - Input: An image (handwritten/drawn math expression).
+        - Context: Previous recognized LaTeX results are {previous}.
+        - Task:
+            1. Recognize the math expression from the image.
+            2. Output the recognized LaTeX.
+            3. Solve the expression and output the result.
+        - Format: Return JSON with keys:
+            {{
+              "latex": "\\[ ... \\]",
+              "result": "..."
+            }}
         """
 
-        response = model.generate_content(prompt)
+        response = model.generate_content([
+            prompt,
+            {"mime_type": file.content_type, "data": image_bytes}
+        ])
 
-        return {
-            "latex": response.text.strip()
-        }
+        return eval(response.text)  # expect Gemini to return JSON
     except Exception as e:
         return {"error": str(e)}

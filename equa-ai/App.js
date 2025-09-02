@@ -4,15 +4,22 @@ import {
   View,
   Dimensions,
   TouchableOpacity,
+  Alert,
 } from "react-native";
-import { useState } from "react";
-import Canvas from "./components/Canvas.js";
 import Result from "./components/Result.js";
+import { useState, useRef } from "react";
+import Canvas from "./components/Canvas.js";
+import { captureRef } from "react-native-view-shot";
+
 const { height, width } = Dimensions.get("window");
+
 export default function App() {
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
-  const [result, setResult] = useState([]);
+  const [result, setResult] = useState(["\\[ x+1 \\]", "\\[ y^2 \\]"]);
+  const [previous, setPrevious] = useState([]); // ✅ Added missing state
+  const canvasRef = useRef();
+
   const onTouchEnd = () => {
     if (currentPath.length > 0) {
       setPaths([...paths, currentPath]);
@@ -28,21 +35,57 @@ export default function App() {
 
     setCurrentPath([...currentPath, newPoint]);
   };
-  const handleCalculate = () => {
-    //todo
+
+  const sendImage = async () => {
+    try {
+      // ✅ Capture canvas as base64
+      const uri = await captureRef(canvasRef, {
+        format: "png",
+        quality: 1,
+      });
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri,
+        type: "image/png",
+        name: "equation.png",
+      });
+      formData.append("previous", JSON.stringify(previous));
+
+      const res = await fetch(
+        " https://4a9356cc3c53.ngrok-free.app/solve-image",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+      if (data.latex) {
+        setResult(data.latex);
+        setPrevious((prev) => [...prev, data.latex]);
+      } else {
+        Alert.alert("Error", data.error || "Something went wrong");
+      }
+    } catch (e) {
+      Alert.alert("Error", e.message);
+    }
   };
+
   return (
     <View style={styles.container}>
-      <Result height={height} width={width} result={result} />
-
-      <Canvas
-        paths={paths}
-        currentPath={currentPath}
-        onTouchEnd={onTouchEnd}
-        onTouchMove={onTouchMove}
-        height={height * 0.6}
-        width={width * 0.9}
-      />
+      <Result result={result} />
+      <View ref={canvasRef} collapsable={false}>
+        <Canvas
+          paths={paths}
+          currentPath={currentPath}
+          onTouchEnd={onTouchEnd}
+          onTouchMove={onTouchMove}
+          height={height * 0.6}
+          width={width * 0.9}
+          result={result}
+        />
+      </View>
 
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
@@ -57,7 +100,7 @@ export default function App() {
 
         <TouchableOpacity
           style={[styles.button, styles.calculateButton]}
-          onPress={handleCalculate}
+          onPress={sendImage}
         >
           <Text style={styles.buttonText}>Calculate</Text>
         </TouchableOpacity>
@@ -69,7 +112,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc", // light gray background
+    backgroundColor: "#f8fafc",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
