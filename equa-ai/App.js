@@ -17,7 +17,7 @@ export default function App() {
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
   const [result, setResult] = useState(["\\[ x+1 \\]", "\\[ y^2 \\]"]);
-  const [previous, setPrevious] = useState([]); // ✅ Added missing state
+  const [previous, setPrevious] = useState([]);
   const canvasRef = useRef();
 
   const onTouchEnd = () => {
@@ -38,7 +38,6 @@ export default function App() {
 
   const sendImage = async () => {
     try {
-      // ✅ Capture canvas as base64
       const uri = await captureRef(canvasRef, {
         format: "png",
         quality: 1,
@@ -52,13 +51,10 @@ export default function App() {
       });
       formData.append("previous", JSON.stringify(previous));
 
-      const res = await fetch(
-        " https://4a9356cc3c53.ngrok-free.app/solve-image",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const res = await fetch("https://683a3c121b0a.ngrok-free.app/solve", {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await res.json();
       if (data.latex) {
