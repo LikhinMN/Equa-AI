@@ -6,19 +6,19 @@ module.exports = {
     "./screens/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
-  darkMode: "class", // or "media"
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        // 🌞 Light mode
         light: {
-          background: "#F9FAFB",
-          surface: "#FFFFFF",
-          text: "#111827",
-          primary: "#2563EB", // blue-600
-          secondary: "#64748B", // slate-500
-          accent: "#10B981", // emerald-500
-          muted: "#E5E7EB", // gray-200
+          background: "#FFFFFF",
+          text: "#000000",
+          border: "#d8d8d8",
+          primary: "#def3fa",
+          secondary: "#e1f7dd",
+          accentB: "#efefef",
+          accent: "#0f0f0f",
+          muted: "#E5E7EB",
         },
         // 🌚 Dark mode
         dark: {

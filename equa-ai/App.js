@@ -6,10 +6,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Header from "./components/Header.js";
 const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <SafeAreaProvider>
+      <Header />
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={({ route }) => ({
@@ -24,7 +26,7 @@ export default function App() {
               return <Ionicons name={iconName} size={size} color={color} />;
             },
             tabBarActiveTintColor: "#10B981",
-            tabBarActiveBackgroundColor: "#86efac",
+            tabBarActiveBackgroundColor: "#def3fa",
             tabBarInactiveTintColor: "#9CA3AF",
             tabBarStyle: {
               position: "absolute",
