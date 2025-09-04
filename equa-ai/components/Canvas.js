@@ -15,10 +15,10 @@ const Canvas = ({
       onResponderMove={onTouchMove}
       onResponderRelease={onTouchEnd}
       style={{
-        height: height * 0.4,
+        height: height,
         width: width,
-        backgroundColor: "#b3b3b3ff",
       }}
+      className="bg-light-secondary border-2 border-light-border rounded-md"
     >
       <Svg height="100%" width="100%">
         {paths.map((p, index) => (

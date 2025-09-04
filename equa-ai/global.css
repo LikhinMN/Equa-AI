@@ -4,6 +4,23 @@
 
 @layer utilities {
   .flex-center {
-    @apply flex-1 justify-center items-center text-7xl;
+    @apply justify-center items-center;
+  }
+  .borders {
+    @apply border-2 border-light-border rounded-md;
+  }
+  .text {
+    @apply text-[16px] font-semibold;
+  }
+}
+@layer components {
+  .btn {
+    @apply flex justify-center items-center gap-3 py-2 flex-row borders;
+  }
+  .primary-btn {
+    @apply bg-light-primary;
+  }
+  .scondary-btn {
+    @apply bg-light-muted;
   }
 }

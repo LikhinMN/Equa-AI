@@ -10,7 +10,7 @@ export default function Header() {
         <Feather name="pen-tool" size={24} color="#0f0f0f" />
         <Text className="ml-2 text-2xl font-bold text-gray-800">EquaAI</Text>
       </View>
-      <TouchableOpacity className="bg-light-accentB p-2 rounded-full border-2 border-light-border">
+      <TouchableOpacity className="bg-light-accentB p-2 borders rounded-full">
         <FontAwesome5 name="moon" size={20} />
       </TouchableOpacity>
     </SafeAreaView>
