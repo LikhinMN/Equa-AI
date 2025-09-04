@@ -1,11 +1,11 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 import os
 import json
 from dotenv import load_dotenv
-from typing import List, Dict, Any
 import logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
-MAX_FILE_SIZE = 10 * 1024 * 1024
+MAX_FILE_SIZE = 10 * 1024 * 1024  
 
 
 @app.get("/")
@@ -38,16 +38,14 @@ def home():
 
 
 @app.post("/solve")
-async def solve_equation_image(
-    file: UploadFile = File(...),
-    previous: str = Form("[]")
-):
+async def solve_equation_image(file: UploadFile = File(...)):
     try:
         if file.content_type not in ALLOWED_IMAGE_TYPES:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_IMAGE_TYPES)}"
             )
+
         image_bytes = await file.read()
         if len(image_bytes) > MAX_FILE_SIZE:
             raise HTTPException(
@@ -57,14 +55,8 @@ async def solve_equation_image(
         
         if len(image_bytes) == 0:
             raise HTTPException(status_code=400, detail="Empty file")
-        try:
-            previous_calculations = json.loads(previous)
-        except json.JSONDecodeError:
-            previous_calculations = []
-        context = ""
-        if previous_calculations:
-            context = f"\nPrevious calculations in this session: {previous_calculations}\n"
-        prompt = f"""
+
+        prompt = """
         You are a math recognition and solving system.
 
         - Input: An image containing a handwritten or drawn mathematical expression.
@@ -73,15 +65,14 @@ async def solve_equation_image(
             2. Solve the expression step by step.
             3. Format the result in proper LaTeX notation.
             4. If the expression cannot be solved (e.g., incomplete equation), provide the recognized expression in LaTeX.
-        {context}
 
         - Output Format: Return ONLY a valid JSON object with these exact keys:
-            {{
+            {
               "latex": ["\\\\[ recognized_expression \\\\]", "\\\\[ solution_step_1 \\\\]", "\\\\[ final_result \\\\]"],
               "result": "final numerical or algebraic result",
               "steps": ["step 1 explanation", "step 2 explanation"],
               "recognized": "the original expression you recognized"
-            }}
+            }
 
         Important:
         - Always return valid JSON
@@ -95,12 +86,14 @@ async def solve_equation_image(
         ])
 
         logger.info(f"Gemini response: {response.text}")
+
         try:
+
             response_text = response.text.strip()
             if response_text.startswith("```json"):
-                response_text = response_text[7:]
+                response_text = response_text[7:] 
             if response_text.endswith("```"):
-                response_text = response_text[:-3]
+                response_text = response_text[:-3] 
             
             result = json.loads(response_text)
             if "latex" not in result:
@@ -115,7 +108,7 @@ async def solve_equation_image(
                 "latex": ["\\[ \\text{Error parsing response} \\]"],
                 "result": "Could not process the mathematical expression",
                 "error": "Failed to parse AI response",
-                "raw_response": response.text[:500] 
+                "raw_response": response.text[:500]  
             }
 
     except HTTPException:
@@ -126,12 +119,9 @@ async def solve_equation_image(
 
 
 @app.post("/solve-image")
-async def solve_equation_image_legacy(
-    file: UploadFile = File(...),
-    previous: str = Form("[]")
-):
+async def solve_equation_image_legacy(file: UploadFile = File(...)):
     """Legacy endpoint for backward compatibility"""
-    return await solve_equation_image(file, previous)
+    return await solve_equation_image(file)
 
 
 @app.get("/health")
