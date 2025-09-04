@@ -1,145 +1,55 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import Result from "./components/Result.js";
-import { useState, useRef } from "react";
-import Canvas from "./components/Canvas.js";
-import { captureRef } from "react-native-view-shot";
-
-const { height, width } = Dimensions.get("window");
-
+import { Text, View } from "react-native";
+import React, { Component } from "react";
+import Home from "./screens/Home.js";
+import History from "./screens/History.js";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+const Tab = createBottomTabNavigator();
 export default function App() {
-  const [paths, setPaths] = useState([]);
-  const [currentPath, setCurrentPath] = useState([]);
-  const [result, setResult] = useState(["\\[ x+1 \\]", "\\[ y^2 \\]"]);
-  const [previous, setPrevious] = useState([]);
-  const canvasRef = useRef();
-
-  const onTouchEnd = () => {
-    if (currentPath.length > 0) {
-      setPaths([...paths, currentPath]);
-      setCurrentPath([]);
-    }
-  };
-
-  const onTouchMove = (event) => {
-    const { locationX, locationY } = event.nativeEvent;
-    const newPoint = `${
-      currentPath.length === 0 ? "M" : "L"
-    }${locationX.toFixed(0)},${locationY.toFixed(0)}`;
-
-    setCurrentPath([...currentPath, newPoint]);
-  };
-
-  const sendImage = async () => {
-    try {
-      const uri = await captureRef(canvasRef, {
-        format: "png",
-        quality: 1,
-      });
-
-      const formData = new FormData();
-      formData.append("file", {
-        uri,
-        type: "image/png",
-        name: "equation.png",
-      });
-      formData.append("previous", JSON.stringify(previous));
-
-      const res = await fetch("https://683a3c121b0a.ngrok-free.app/solve", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (data.latex) {
-        setResult(data.latex);
-        setPrevious((prev) => [...prev, data.latex]);
-      } else {
-        Alert.alert("Error", data.error || "Something went wrong");
-      }
-    } catch (e) {
-      Alert.alert("Error", e.message);
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Result result={result} />
-      <View ref={canvasRef} collapsable={false}>
-        <Canvas
-          paths={paths}
-          currentPath={currentPath}
-          onTouchEnd={onTouchEnd}
-          onTouchMove={onTouchMove}
-          height={height * 0.6}
-          width={width * 0.9}
-          result={result}
-        />
-      </View>
-
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.clearButton]}
-          onPress={() => {
-            setPaths([]);
-            setCurrentPath([]);
-          }}
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
+              if (route.name === "Home") {
+                iconName = focused ? "home" : "home-outline";
+              } else if (route.name === "History") {
+                iconName = focused ? "time" : "time-outline";
+              }
+              return <Ionicons name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: "#10B981",
+            tabBarActiveBackgroundColor: "#86efac",
+            tabBarInactiveTintColor: "#9CA3AF",
+            tabBarStyle: {
+              position: "absolute",
+              bottom: 5,
+              left: 20,
+              right: 20,
+              elevation: 5,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 20,
+              height: 65,
+              shadowColor: "#000",
+              shadowOpacity: 0.1,
+              shadowOffset: { width: 0, height: 5 },
+              shadowRadius: 10,
+            },
+            tabBarLabelStyle: {
+              fontSize: 12,
+              fontWeight: "600",
+            },
+          })}
         >
-          <Text style={styles.buttonText}>Clear</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.calculateButton]}
-          onPress={sendImage}
-        >
-          <Text style={styles.buttonText}>Calculate</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <Tab.Screen name="Home" component={Home} />
+          <Tab.Screen name="History" component={History} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-    width: "80%",
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    marginHorizontal: 8,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  clearButton: {
-    backgroundColor: "#ef4444",
-  },
-  calculateButton: {
-    backgroundColor: "#3b82f6",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
