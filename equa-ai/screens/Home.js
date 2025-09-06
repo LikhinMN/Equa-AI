@@ -13,7 +13,36 @@ import { captureRef } from "react-native-view-shot";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Octicons from "@expo/vector-icons/Octicons";
 const { width, height } = Dimensions.get("window");
-const Home = () => {
+const Home = ({ history, setHistory }) => {
+  async function handleCalculate() {
+    try {
+      const uri = await captureRef(canvasRef, {
+        format: "png",
+        quality: 1,
+      });
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri,
+        type: "image/png",
+        name: "equation.png",
+      });
+      const res = await fetch("", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.latex) {
+        setResult(data.latex);
+      } else {
+        Alert.alert("Error", data.error || "Something went wrong");
+      }
+    } catch (e) {
+      Alert.alert("Error", e.message);
+    }
+  }
+
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
   const canvasRef = useRef();
