@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
@@ -20,7 +21,6 @@ if not api_key:
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -32,11 +32,9 @@ app.add_middleware(
 ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  
 
-
 @app.get("/")
 def home():
     return {"message": "Math Recognition API is running successfully", "version": "1.0.0"}
-
 
 @app.post("/solve")
 async def solve_equation_image(file: UploadFile = File(...)):
@@ -89,7 +87,6 @@ async def solve_equation_image(file: UploadFile = File(...)):
         logger.info(f"Gemini response: {response.text}")
 
         try:
-
             response_text = response.text.strip()
             if response_text.startswith("```json"):
                 response_text = response_text[7:] 
@@ -118,12 +115,10 @@ async def solve_equation_image(file: UploadFile = File(...)):
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-
 @app.post("/solve-image")
 async def solve_equation_image_legacy(file: UploadFile = File(...)):
     """Legacy endpoint for backward compatibility"""
     return await solve_equation_image(file)
-
 
 @app.get("/health")
 def health_check():
@@ -133,6 +128,7 @@ def health_check():
         "model": "gemini-1.5-flash",
         "api_version": "1.0.0"
     }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
