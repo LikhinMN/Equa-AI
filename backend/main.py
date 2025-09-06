@@ -6,6 +6,8 @@ import json
 from dotenv import load_dotenv
 import logging
 
+app = FastAPI(title="Math Recognition API", version="1.0.0") 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,6 @@ if not api_key:
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-app = FastAPI(title="Math Recognition API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -132,3 +133,6 @@ def health_check():
         "model": "gemini-1.5-flash",
         "api_version": "1.0.0"
     }
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
